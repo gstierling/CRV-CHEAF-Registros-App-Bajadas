@@ -456,16 +456,29 @@
       showToast('Falta configurar la URL de Apps Script', false);
       return;
     }
+    // Actualización optimista: refleja el registro de inmediato en los 3 recuadros,
+    // sin esperar la respuesta de red, para que no haya duda de que se registró.
+    const optimisticRecord = { fecha: new Date(), tipo: tipo };
+    rawData.push(optimisticRecord);
+    buildOptions();
+    render();
+    showToast('Registrado: ' + tipo, true);
+
     fetch(CONFIG.APPS_SCRIPT_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain' },
       body: tipo
     })
     .then(()=>{
-      showToast('Registrado: ' + tipo, true);
-      setTimeout(loadData, 900);
+      // Sincroniza con la planilla poco después, por si hay otros dispositivos registrando a la vez
+      setTimeout(loadData, 4000);
     })
     .catch(()=>{
+      // Si falló el envío, se revierte el conteo optimista
+      const idx = rawData.indexOf(optimisticRecord);
+      if(idx > -1) rawData.splice(idx, 1);
+      buildOptions();
+      render();
       showToast('No se pudo registrar. Intenta de nuevo.', false);
     });
   }
