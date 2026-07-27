@@ -62,7 +62,7 @@
     text-shadow: 2px 2px 0 rgba(255,255,255,0.35);
   }
 
-  /* --- Date selector --- */
+  /* --- Date selector (dropdown propio, sin usar <select> nativo) --- */
   .selector-card{
     background:var(--ink);
     border-radius:18px;
@@ -74,25 +74,58 @@
     font-size:13px; font-weight:800; letter-spacing:.1em;
     text-transform:uppercase; color:var(--gold-highlight); opacity:.85; margin-bottom:8px; display:block;
   }
-  select{
+  .custom-select{ position:relative; }
+  .custom-select-trigger{
     width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
     appearance:none;
-    -webkit-appearance:none;
-    background:rgba(255,255,255,0.06) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FFB000' stroke-width='3'><path d='M6 9l6 6 6-6'/></svg>") no-repeat right 14px center / 16px;
+    background:rgba(255,255,255,0.06);
     border:2px solid rgba(255,176,0,0.35);
     border-radius:12px;
-    padding:12px 40px 12px 14px;
+    padding:12px 14px;
     font-family:'Archivo Black', sans-serif;
     font-size:16px;
     color:var(--white-ish);
     cursor:pointer;
+    text-align:left;
   }
-  select option{
-    font-family:'Manrope', sans-serif;
+  .custom-select-trigger:focus-visible{ outline:3px solid var(--gold-highlight); outline-offset:2px; }
+  .custom-select-trigger .chevron{
+    width:16px; height:16px; flex-shrink:0;
+    transition:transform .15s ease;
+  }
+  .custom-select.open .custom-select-trigger .chevron{ transform:rotate(180deg); }
+  .custom-select-list{
+    position:absolute;
+    z-index:20;
+    top:calc(100% + 8px);
+    left:0; right:0;
+    max-height:260px;
+    overflow-y:auto;
+    margin:0; padding:8px;
+    list-style:none;
+    background:var(--ink);
+    border:2px solid rgba(255,176,0,0.35);
+    border-radius:14px;
+    box-shadow:0 10px 24px rgba(0,0,0,0.35);
+  }
+  .custom-select-list[hidden]{ display:none; }
+  .custom-select-option{
+    font-family:'Archivo Black', sans-serif;
+    font-size:15px;
+    color:var(--white-ish);
+    padding:12px 12px;
+    border-radius:9px;
+    cursor:pointer;
+  }
+  .custom-select-option:hover,
+  .custom-select-option.active{
+    background:var(--gold-highlight);
     color:var(--ink);
-    background:var(--white-ish);
   }
-  select:focus-visible{ outline:3px solid var(--gold-highlight); outline-offset:2px; }
 
   /* --- Slide-to-register bar --- */
   .slider-card{ margin-bottom:8px; }
@@ -233,8 +266,17 @@
   </header>
 
   <div class="selector-card">
-    <label class="selector-label" for="dateSelect">Ver registros de</label>
-    <select id="dateSelect"></select>
+    <label class="selector-label" id="dateSelectLabelTag">Ver registros de</label>
+    <div class="custom-select" id="dateSelectWrap">
+      <button type="button" class="custom-select-trigger" id="dateSelectTrigger"
+              aria-haspopup="listbox" aria-expanded="false" aria-labelledby="dateSelectLabelTag">
+        <span id="dateSelectValueText">Total (todos los registros)</span>
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 9l6 6 6-6"/>
+        </svg>
+      </button>
+      <ul class="custom-select-list" id="dateSelectList" role="listbox" hidden></ul>
+    </div>
   </div>
 
   <div class="slider-card">
@@ -310,7 +352,11 @@
 
   let rawData = []; // { fecha: Date, tipo: 'Aplicación' | 'Redes Sociales', id?: string }
   let pendingRecords = []; // registros optimistas aún no confirmados por el servidor
-  const dateSelect = document.getElementById('dateSelect');
+  let selectedValue = 'total';
+  const dateSelectWrap = document.getElementById('dateSelectWrap');
+  const dateSelectTrigger = document.getElementById('dateSelectTrigger');
+  const dateSelectValueText = document.getElementById('dateSelectValueText');
+  const dateSelectList = document.getElementById('dateSelectList');
   const toast = document.getElementById('toast');
 
   // Dibuja los rayos del sol/rueda decorativa
@@ -342,14 +388,30 @@
 
   function capitalize(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
 
-  function buildOptions(){
-    const prevValue = dateSelect.value;
-    dateSelect.innerHTML = '';
+  function addOption(value, label){
+    const li = document.createElement('li');
+    li.className = 'custom-select-option';
+    li.setAttribute('role','option');
+    li.dataset.value = value;
+    li.textContent = label;
+    if(value === selectedValue){
+      li.classList.add('active');
+      dateSelectValueText.textContent = label;
+    }
+    li.addEventListener('click', function(){
+      selectedValue = value;
+      dateSelectValueText.textContent = label;
+      closeDropdown();
+      render();
+    });
+    dateSelectList.appendChild(li);
+  }
 
-    const optTotal = document.createElement('option');
-    optTotal.value = 'total';
-    optTotal.textContent = 'Total (todos los registros)';
-    dateSelect.appendChild(optTotal);
+  function buildOptions(){
+    const availableValues = ['total'];
+    dateSelectList.innerHTML = '';
+
+    addOption('total', 'Total (todos los registros)');
 
     // Meses presentes
     const months = new Map(); // key -> label
@@ -361,10 +423,8 @@
       }
     });
     [...months.entries()].sort().forEach(([k,label])=>{
-      const o = document.createElement('option');
-      o.value = 'mes:'+k;
-      o.textContent = label;
-      dateSelect.appendChild(o);
+      addOption('mes:'+k, label);
+      availableValues.push('mes:'+k);
     });
 
     // Fechas individuales (solo domingos)
@@ -377,20 +437,42 @@
       }
     });
     [...days.entries()].sort().forEach(([k,label])=>{
-      const o = document.createElement('option');
-      o.value = 'fecha:'+k;
-      o.textContent = capitalize(label);
-      dateSelect.appendChild(o);
+      addOption('fecha:'+k, capitalize(label));
+      availableValues.push('fecha:'+k);
     });
 
-    // Restaurar selección previa si sigue existiendo
-    if(prevValue && [...dateSelect.options].some(o=>o.value===prevValue)){
-      dateSelect.value = prevValue;
+    // Si la selección previa ya no existe (por ejemplo, filtró una fecha muy antigua
+    // que dejó de tener datos), vuelve a "Total"
+    if(!availableValues.includes(selectedValue)){
+      selectedValue = 'total';
+      dateSelectValueText.textContent = 'Total (todos los registros)';
+      const activeLi = dateSelectList.querySelector('.custom-select-option[data-value="total"]');
+      if(activeLi) activeLi.classList.add('active');
     }
   }
 
+  function openDropdown(){
+    dateSelectList.hidden = false;
+    dateSelectWrap.classList.add('open');
+    dateSelectTrigger.setAttribute('aria-expanded','true');
+  }
+  function closeDropdown(){
+    dateSelectList.hidden = true;
+    dateSelectWrap.classList.remove('open');
+    dateSelectTrigger.setAttribute('aria-expanded','false');
+  }
+  dateSelectTrigger.addEventListener('click', function(){
+    if(dateSelectList.hidden) openDropdown(); else closeDropdown();
+  });
+  document.addEventListener('click', function(e){
+    if(!dateSelectWrap.contains(e.target)) closeDropdown();
+  });
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape') closeDropdown();
+  });
+
   function filteredData(){
-    const v = dateSelect.value || 'total';
+    const v = selectedValue || 'total';
     if(v === 'total') return rawData;
     if(v.startsWith('mes:')){
       const k = v.slice(4);
@@ -602,7 +684,6 @@
   });
 
   computeMaxOffset();
-  dateSelect.addEventListener('change', render);
 
   buildOptions();
   render();
