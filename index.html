@@ -64,15 +64,15 @@
 
   /* --- Date selector (dropdown propio, sin usar <select> nativo) --- */
   .selector-card{
-    background:var(--ink);
+    background:var(--panel);
     border-radius:18px;
     padding:11px 16px;
     margin:18px 0 22px;
-    box-shadow:0 6px 18px rgba(58,38,0,0.25);
+    box-shadow:0 6px 18px rgba(58,38,0,0.12);
   }
   .selector-label{
     font-size:13px; font-weight:800; letter-spacing:.1em;
-    text-transform:uppercase; color:var(--gold-highlight); opacity:.85; margin-bottom:8px; display:block;
+    text-transform:uppercase; color:var(--ink-soft); margin-bottom:8px; display:block;
   }
   .custom-select{ position:relative; }
   .custom-select-trigger{
@@ -82,7 +82,7 @@
     justify-content:space-between;
     gap:10px;
     appearance:none;
-    background:rgba(255,255,255,0.06);
+    background:var(--ink);
     border:2px solid rgba(255,176,0,0.35);
     border-radius:12px;
     padding:12px 14px;
@@ -211,7 +211,7 @@
 
   /* --- Summary cards --- */
   .total-card{
-    background:var(--ink);
+    background:var(--app-color-dark);
     color:var(--white-ish);
     border-radius:20px;
     padding:18px 20px;
@@ -266,7 +266,7 @@
   </header>
 
   <div class="selector-card">
-    <label class="selector-label" id="dateSelectLabelTag">Ver registros de</label>
+    <label class="selector-label" id="dateSelectLabelTag">Fecha</label>
     <div class="custom-select" id="dateSelectWrap">
       <button type="button" class="custom-select-trigger" id="dateSelectTrigger"
               aria-haspopup="listbox" aria-expanded="false" aria-labelledby="dateSelectLabelTag">
