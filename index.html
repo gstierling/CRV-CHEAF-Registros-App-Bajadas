@@ -310,6 +310,8 @@
   // ===================================================
 
   let rawData = []; // { fecha: Date, tipo: 'Aplicación' | 'Redes Sociales' }
+  let pendingRecords = []; // registros optimistas aún no confirmados por el servidor
+  let lastServerCount = null;
   const dateSelect = document.getElementById('dateSelect');
   const toast = document.getElementById('toast');
 
@@ -431,9 +433,23 @@
     }
     const callbackName = 'cheafCallback_' + Date.now();
     window[callbackName] = function(data){
-      rawData = (data || [])
+      const serverData = (data || [])
         .map(r => ({ fecha: new Date(r.fecha), tipo: r.tipo }))
         .filter(r => !isNaN(r.fecha.getTime()) && r.tipo);
+
+      if(pendingRecords.length === 0){
+        rawData = serverData;
+      } else if(lastServerCount !== null && serverData.length >= lastServerCount + pendingRecords.length){
+        // El servidor ya reflejó todos los registros optimistas pendientes: se puede confiar en su lista
+        rawData = serverData;
+        pendingRecords = [];
+      } else {
+        // El servidor todavía va atrasado: se mantienen superpuestos los registros locales recientes
+        // para que el contador nunca "baje" frente a lo que la persona ya vio confirmado
+        rawData = serverData.concat(pendingRecords);
+      }
+      lastServerCount = serverData.length;
+
       buildOptions();
       render();
       document.getElementById('footerNote').textContent =
@@ -460,6 +476,7 @@
     // sin esperar la respuesta de red, para que no haya duda de que se registró.
     const optimisticRecord = { fecha: new Date(), tipo: tipo };
     rawData.push(optimisticRecord);
+    pendingRecords.push(optimisticRecord);
     buildOptions();
     render();
     showToast('Registrado: ' + tipo, true);
@@ -470,13 +487,17 @@
       body: tipo
     })
     .then(()=>{
-      // Sincroniza con la planilla poco después, por si hay otros dispositivos registrando a la vez
+      // Sincroniza con la planilla poco después, por si hay otros dispositivos registrando a la vez.
+      // El propio loadData() se encarga de no descontar este registro hasta confirmar que el
+      // servidor ya lo tiene.
       setTimeout(loadData, 4000);
     })
     .catch(()=>{
-      // Si falló el envío, se revierte el conteo optimista
-      const idx = rawData.indexOf(optimisticRecord);
+      // Si falló el envío, se revierte el conteo optimista de ambos arreglos
+      let idx = rawData.indexOf(optimisticRecord);
       if(idx > -1) rawData.splice(idx, 1);
+      idx = pendingRecords.indexOf(optimisticRecord);
+      if(idx > -1) pendingRecords.splice(idx, 1);
       buildOptions();
       render();
       showToast('No se pudo registrar. Intenta de nuevo.', false);
