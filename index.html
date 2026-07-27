@@ -155,6 +155,7 @@
     justify-content:center;
     cursor:grab;
     will-change:transform;
+    touch-action:none;
   }
   .slide-handle:active{ cursor:grabbing; }
   .slide-handle.dragging{ transition:none; }
@@ -467,6 +468,11 @@
 
   let slideLocked = false;
 
+  function generateId(){
+    if(window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return 'id-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+  }
+
   function registrar(tipo){
     if(!CONFIG.APPS_SCRIPT_URL || CONFIG.APPS_SCRIPT_URL.indexOf('PEGA_AQUI') === 0){
       showToast('Falta configurar la URL de Apps Script', false);
@@ -481,26 +487,35 @@
     render();
     showToast('Registrado: ' + tipo, true);
 
+    // Se envía un id único por deslizamiento; el servidor lo usa para descartar
+    // cualquier reenvío duplicado de esta misma acción (por ejemplo, por una
+    // repetición a nivel de red) y así evitar que se guarde más de una vez.
+    const regId = generateId();
+
     fetch(CONFIG.APPS_SCRIPT_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain' },
-      body: tipo
+      body: JSON.stringify({ tipo: tipo, id: regId })
     })
-    .then(()=>{
+    .then(function(res){ return res.json(); })
+    .then(function(data){
+      if(!data || data.ok !== true){
+        throw new Error(data && data.error ? data.error : 'El servidor no confirmó el registro');
+      }
       // Sincroniza con la planilla poco después, por si hay otros dispositivos registrando a la vez.
       // El propio loadData() se encarga de no descontar este registro hasta confirmar que el
       // servidor ya lo tiene.
       setTimeout(loadData, 4000);
     })
-    .catch(()=>{
-      // Si falló el envío, se revierte el conteo optimista de ambos arreglos
+    .catch(function(err){
+      // Si falló el envío (o el servidor respondió ok:false), se revierte el conteo optimista
       let idx = rawData.indexOf(optimisticRecord);
       if(idx > -1) rawData.splice(idx, 1);
       idx = pendingRecords.indexOf(optimisticRecord);
       if(idx > -1) pendingRecords.splice(idx, 1);
       buildOptions();
       render();
-      showToast('No se pudo registrar. Intenta de nuevo.', false);
+      showToast('No se pudo registrar' + (err && err.message ? (': ' + err.message) : ''), false);
     });
   }
 
@@ -538,7 +553,8 @@
   }
 
   function onPointerDown(e){
-    if(slideLocked) return;
+    // Ignora toques adicionales (multitáctil, palma de la mano) mientras ya hay un arrastre en curso
+    if(slideLocked || dragging) return;
     computeMaxOffset();
     dragging = true;
     pointerId = e.pointerId;
@@ -548,16 +564,17 @@
   }
 
   function onPointerMove(e){
-    if(!dragging) return;
+    if(!dragging || e.pointerId !== pointerId) return;
     let offset = e.clientX - startX;
     offset = Math.max(-maxOffset, Math.min(maxOffset, offset));
     currentOffset = offset;
     setHandle(offset);
   }
 
-  function onPointerUp(){
-    if(!dragging) return;
+  function onPointerUp(e){
+    if(!dragging || e.pointerId !== pointerId) return;
     dragging = false;
+    pointerId = null;
     slideHandle.classList.remove('dragging');
     const ratio = maxOffset ? (currentOffset / maxOffset) : 0;
 
