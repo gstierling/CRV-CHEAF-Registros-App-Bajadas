@@ -310,9 +310,8 @@
   };
   // ===================================================
 
-  let rawData = []; // { fecha: Date, tipo: 'Aplicación' | 'Redes Sociales' }
+  let rawData = []; // { fecha: Date, tipo: 'Aplicación' | 'Redes Sociales', id?: string }
   let pendingRecords = []; // registros optimistas aún no confirmados por el servidor
-  let lastServerCount = null;
   const dateSelect = document.getElementById('dateSelect');
   const toast = document.getElementById('toast');
 
@@ -435,21 +434,15 @@
     const callbackName = 'cheafCallback_' + Date.now();
     window[callbackName] = function(data){
       const serverData = (data || [])
-        .map(r => ({ fecha: new Date(r.fecha), tipo: r.tipo }))
+        .map(r => ({ fecha: new Date(r.fecha), tipo: r.tipo, id: r.id }))
         .filter(r => !isNaN(r.fecha.getTime()) && r.tipo);
 
-      if(pendingRecords.length === 0){
-        rawData = serverData;
-      } else if(lastServerCount !== null && serverData.length >= lastServerCount + pendingRecords.length){
-        // El servidor ya reflejó todos los registros optimistas pendientes: se puede confiar en su lista
-        rawData = serverData;
-        pendingRecords = [];
-      } else {
-        // El servidor todavía va atrasado: se mantienen superpuestos los registros locales recientes
-        // para que el contador nunca "baje" frente a lo que la persona ya vio confirmado
-        rawData = serverData.concat(pendingRecords);
-      }
-      lastServerCount = serverData.length;
+      // Un registro optimista se retira de "pendientes" únicamente cuando su id exacto
+      // ya aparece en los datos del servidor (no por comparar cantidades, que puede
+      // fallar y dejar registros fantasma duplicados en el dashboard).
+      const serverIds = new Set(serverData.map(r => r.id).filter(Boolean));
+      pendingRecords = pendingRecords.filter(r => !serverIds.has(r.id));
+      rawData = serverData.concat(pendingRecords);
 
       buildOptions();
       render();
@@ -480,17 +473,15 @@
     }
     // Actualización optimista: refleja el registro de inmediato en los 3 recuadros,
     // sin esperar la respuesta de red, para que no haya duda de que se registró.
-    const optimisticRecord = { fecha: new Date(), tipo: tipo };
+    // Lleva su propio id único, que es el mismo que se envía al servidor: así, al
+    // sincronizar, se puede confirmar con exactitud si el servidor ya lo tiene.
+    const regId = generateId();
+    const optimisticRecord = { fecha: new Date(), tipo: tipo, id: regId };
     rawData.push(optimisticRecord);
     pendingRecords.push(optimisticRecord);
     buildOptions();
     render();
     showToast('Registrado: ' + tipo, true);
-
-    // Se envía un id único por deslizamiento; el servidor lo usa para descartar
-    // cualquier reenvío duplicado de esta misma acción (por ejemplo, por una
-    // repetición a nivel de red) y así evitar que se guarde más de una vez.
-    const regId = generateId();
 
     fetch(CONFIG.APPS_SCRIPT_URL, {
       method: 'POST',
