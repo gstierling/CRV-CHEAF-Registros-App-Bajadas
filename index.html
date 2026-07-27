@@ -52,12 +52,6 @@
   }
   @media (prefers-reduced-motion: reduce){ .sunwheel{animation:none;} }
   @keyframes spin{ from{transform:translate(-50%,-50%) rotate(0deg);} to{transform:translate(-50%,-50%) rotate(360deg);} }
-  .eyebrow{
-    position:relative; z-index:1;
-    font-weight:800; letter-spacing:.22em; font-size:13px;
-    text-transform:uppercase; color:var(--bg-deep); opacity:.75;
-    margin:0 0 6px;
-  }
   h1{
     position:relative; z-index:1;
     font-family:'Archivo Black', sans-serif;
@@ -70,29 +64,33 @@
 
   /* --- Date selector --- */
   .selector-card{
-    background:var(--panel);
+    background:var(--ink);
     border-radius:18px;
     padding:11px 16px;
     margin:18px 0 22px;
-    box-shadow:0 6px 18px rgba(58,38,0,0.12);
+    box-shadow:0 6px 18px rgba(58,38,0,0.25);
   }
   .selector-label{
     font-size:13px; font-weight:800; letter-spacing:.1em;
-    text-transform:uppercase; color:var(--ink-soft); margin-bottom:8px; display:block;
+    text-transform:uppercase; color:var(--gold-highlight); opacity:.85; margin-bottom:8px; display:block;
   }
   select{
     width:100%;
     appearance:none;
     -webkit-appearance:none;
-    background:var(--white-ish) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233A2600' stroke-width='3'><path d='M6 9l6 6 6-6'/></svg>") no-repeat right 14px center / 16px;
-    border:2px solid rgba(58,38,0,0.15);
+    background:rgba(255,255,255,0.06) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FFB000' stroke-width='3'><path d='M6 9l6 6 6-6'/></svg>") no-repeat right 14px center / 16px;
+    border:2px solid rgba(255,176,0,0.35);
     border-radius:12px;
-    padding:11px 40px 11px 14px;
-    font-family:'Manrope', sans-serif;
-    font-weight:700;
-    font-size:18px;
-    color:var(--ink);
+    padding:12px 40px 12px 14px;
+    font-family:'Archivo Black', sans-serif;
+    font-size:16px;
+    color:var(--white-ish);
     cursor:pointer;
+  }
+  select option{
+    font-family:'Manrope', sans-serif;
+    color:var(--ink);
+    background:var(--white-ish);
   }
   select:focus-visible{ outline:3px solid var(--gold-highlight); outline-offset:2px; }
 
@@ -188,10 +186,11 @@
     margin-bottom:14px;
     box-shadow:0 6px 18px rgba(58,38,0,0.25);
   }
-  .total-card .label{ font-size:13px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; opacity:.7; margin-bottom:6px; }
+  .total-card .label{ font-size:17px; font-weight:900; letter-spacing:.1em; text-transform:uppercase; opacity:.75; margin-bottom:6px; }
   .total-card .number-row{ display:flex; align-items:baseline; justify-content:center; gap:10px; flex-wrap:wrap; }
-  .total-card .big-number{ font-family:'Archivo Black', sans-serif; font-size:clamp(42px, 13vw, 62px); color:var(--gold-highlight); }
+  .total-card .big-number{ font-family:'Archivo Black', sans-serif; font-size:clamp(55px, 17vw, 81px); color:var(--gold-highlight); }
   .total-card .pct{ font-size:20px; font-weight:800; color:var(--white-ish); opacity:.85; }
+  .total-card .pct .pct-number{ font-size:40px; }
 
   .split-row{
     display:grid;
@@ -205,8 +204,8 @@
     text-align:center;
     box-shadow:0 4px 12px rgba(58,38,0,0.1);
   }
-  .mini-card .label{ font-size:12px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:4px; }
-  .mini-card .value{ font-family:'Archivo Black', sans-serif; font-size:34px; color:var(--ink); }
+  .mini-card .label{ font-size:15px; font-weight:900; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:4px; }
+  .mini-card .value{ font-family:'Archivo Black', sans-serif; font-size:44px; color:var(--ink); }
   .mini-card.app .value{ color:var(--app-color); }
   .mini-card.rrss .value{ color:var(--rrss-color-dark); }
 
@@ -230,7 +229,6 @@
         <g id="spokes"></g>
       </g>
     </svg>
-    <p class="eyebrow">Registro de contacto</p>
     <h1>CHEAF<br>CicloRecreoVía</h1>
   </header>
 
@@ -278,7 +276,7 @@
   <p class="toast" id="toast"></p>
 
   <div class="total-card">
-    <div class="label">Total de registros</div>
+    <div class="label">TOTAL APPs + RRSS</div>
     <div class="number-row">
       <span class="big-number" id="totalNumber">0</span>
       <span class="pct" id="totalPct">(0% de logro)</span>
@@ -421,7 +419,7 @@
 
     document.getElementById('totalNumber').textContent = total;
     const pct = Math.round((total / CONFIG.META) * 100);
-    document.getElementById('totalPct').textContent = '(' + pct + '% de logro)';
+    document.getElementById('totalPct').innerHTML = '(<span class="pct-number">' + pct + '</span>% de la meta)';
     document.getElementById('appTotal').textContent = appCount;
     document.getElementById('rrssTotal').textContent = rrssCount;
   }
