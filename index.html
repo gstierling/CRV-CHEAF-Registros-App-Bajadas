@@ -331,6 +331,54 @@
     min-height:20px;
     margin:12px 0 0;
   }
+
+  /* --- Gráficos tipo dona --- */
+  .donut-section{ margin-top:30px; }
+  .donut-section-title{
+    font-family:'Archivo Black', sans-serif;
+    font-size:22px;
+    text-align:center;
+    color:var(--ink);
+    margin:0 0 18px;
+  }
+  .donut-card{
+    background:var(--panel);
+    border-radius:20px;
+    padding:20px;
+    margin-bottom:18px;
+    box-shadow:0 6px 18px rgba(58,38,0,0.12);
+  }
+  .donut-title{
+    font-weight:800;
+    font-size:16px;
+    color:var(--ink);
+    text-align:center;
+    margin:0 0 16px;
+  }
+  .donut-wrap{
+    position:relative;
+    width:180px; height:180px;
+    margin:0 auto 16px;
+  }
+  .donut{ width:100%; height:100%; border-radius:50%; }
+  .donut-hole{
+    position:absolute;
+    top:50%; left:50%;
+    width:62%; height:62%;
+    transform:translate(-50%,-50%);
+    background:var(--panel);
+    border-radius:50%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+  }
+  .donut-total{ font-family:'Archivo Black', sans-serif; font-size:28px; color:var(--ink); }
+  .donut-total-label{ font-size:11px; font-weight:700; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.05em; }
+  .donut-legend{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; }
+  .donut-legend li{ display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:var(--ink); }
+  .donut-legend .swatch{ width:14px; height:14px; border-radius:4px; flex-shrink:0; }
+  .donut-legend .legend-count{ margin-left:auto; opacity:.7; font-weight:800; white-space:nowrap; }
 </style>
 </head>
 <body>
@@ -477,6 +525,55 @@
 
     <button type="button" class="survey-submit" id="surveySubmit">Enviar respuestas</button>
     <p class="survey-msg" id="surveyMsg"></p>
+  </div>
+
+  <div class="donut-section">
+    <h2 class="donut-section-title">Resultados de la encuesta</h2>
+
+    <div class="donut-card">
+      <p class="donut-title">1. ¿Conocías Cheaf?</p>
+      <div class="donut-wrap">
+        <div class="donut" id="donutQ1"></div>
+        <div class="donut-hole"><span class="donut-total" id="donutQ1Total">0</span><span class="donut-total-label">respuestas</span></div>
+      </div>
+      <ul class="donut-legend" id="legendQ1"></ul>
+    </div>
+
+    <div class="donut-card">
+      <p class="donut-title">2. ¿Qué tan frecuente es tu uso?</p>
+      <div class="donut-wrap">
+        <div class="donut" id="donutQ2"></div>
+        <div class="donut-hole"><span class="donut-total" id="donutQ2Total">0</span><span class="donut-total-label">respuestas</span></div>
+      </div>
+      <ul class="donut-legend" id="legendQ2"></ul>
+    </div>
+
+    <div class="donut-card">
+      <p class="donut-title">3. Motivo de no uso / poco uso</p>
+      <div class="donut-wrap">
+        <div class="donut" id="donutQ3"></div>
+        <div class="donut-hole"><span class="donut-total" id="donutQ3Total">0</span><span class="donut-total-label">respuestas</span></div>
+      </div>
+      <ul class="donut-legend" id="legendQ3"></ul>
+    </div>
+
+    <div class="donut-card">
+      <p class="donut-title">4. Qué motivaría a usarla</p>
+      <div class="donut-wrap">
+        <div class="donut" id="donutQ4"></div>
+        <div class="donut-hole"><span class="donut-total" id="donutQ4Total">0</span><span class="donut-total-label">respuestas</span></div>
+      </div>
+      <ul class="donut-legend" id="legendQ4"></ul>
+    </div>
+
+    <div class="donut-card">
+      <p class="donut-title">5. Probabilidad de uso el próximo mes</p>
+      <div class="donut-wrap">
+        <div class="donut" id="donutQ5"></div>
+        <div class="donut-hole"><span class="donut-total" id="donutQ5Total">0</span><span class="donut-total-label">respuestas</span></div>
+      </div>
+      <ul class="donut-legend" id="legendQ5"></ul>
+    </div>
   </div>
 </div>
 
@@ -943,6 +1040,7 @@
       setSurveyMsg('¡Gracias por tus respuestas!', true);
       resetSurveyForm();
       surveySubmit.disabled = false;
+      setTimeout(loadSurveyData, 1200);
     })
     .catch(function(err){
       setSurveyMsg('No se pudo enviar' + (err && err.message ? (': ' + err.message) : '') + '. Intenta de nuevo.', false);
@@ -950,6 +1048,154 @@
     });
   });
 
+  // ================= Gráficos tipo dona (resultados de la encuesta) =================
+  const CHART_COLORS = ['#3A2600','#8A5A00','#FFB000','#FFD23F','#603D00','#C9A227','#6B4B12','#FFE9A8'];
+
+  // Orden de opciones y versión reducida de cada una, para las leyendas de los gráficos
+  const Q1_ORDER = ['Sí','No'];
+  const Q1_SHORT = { 'Sí':'Sí', 'No':'No' };
+
+  const Q2_ORDER = [
+    'Uso Cheaf frecuentemente',
+    'Tengo la app, pero la uso poco',
+    'Tengo la app, pero nunca la he usado',
+    'No tenía la app, acabo de descargarla'
+  ];
+  const Q2_SHORT = {
+    'Uso Cheaf frecuentemente': 'Uso frecuente',
+    'Tengo la app, pero la uso poco': 'Uso poco',
+    'Tengo la app, pero nunca la he usado': 'Nunca la uso',
+    'No tenía la app, acabo de descargarla': 'Recién descargada'
+  };
+
+  const Q3_ORDER = [
+    'No encuentro ofertas que me interesen',
+    'No tengo puntos para rescatar cercanos a mí',
+    'Se me olvida que existe',
+    'Prefiero comprar de otra forma',
+    'Aún no he tenido la oportunidad',
+    'No entiendo cómo usarla'
+  ];
+  const Q3_SHORT = {
+    'No encuentro ofertas que me interesen': 'Sin ofertas de interés',
+    'No tengo puntos para rescatar cercanos a mí': 'Sin puntos cercanos',
+    'Se me olvida que existe': 'Se me olvida',
+    'Prefiero comprar de otra forma': 'Prefiero otra forma',
+    'Aún no he tenido la oportunidad': 'Sin oportunidad aún',
+    'No entiendo cómo usarla': 'No sé usarla'
+  };
+
+  const Q4_ORDER = [
+    'Ahorrar dinero',
+    'Evitar el desperdicio de alimentos',
+    'Tener comercios cercanos donde ir a buscar la compra',
+    'Que existan promociones o descuentos',
+    'Otro'
+  ];
+  const Q4_SHORT = {
+    'Ahorrar dinero': 'Ahorrar dinero',
+    'Evitar el desperdicio de alimentos': 'Evitar desperdicio',
+    'Tener comercios cercanos donde ir a buscar la compra': 'Comercios cercanos',
+    'Que existan promociones o descuentos': 'Promos/descuentos',
+    'Otro': 'Otro'
+  };
+
+  const Q5_ORDER = ['Muy probable','Probable','Poco probable','Nada probable'];
+  const Q5_SHORT = {
+    'Muy probable':'Muy probable',
+    'Probable':'Probable',
+    'Poco probable':'Poco probable',
+    'Nada probable':'Nada probable'
+  };
+
+  let surveyData = [];
+
+  function loadSurveyData(){
+    if(!CONFIG.APPS_SCRIPT_URL || CONFIG.APPS_SCRIPT_URL.indexOf('PEGA_AQUI') === 0) return;
+    const callbackName = 'cheafSurveyCallback_' + Date.now();
+    window[callbackName] = function(data){
+      surveyData = (data || []).filter(r => r.fecha); // descarta filas vacías/encabezado
+      renderAllDonuts();
+      delete window[callbackName];
+      script.remove();
+    };
+    const script = document.createElement('script');
+    script.src = CONFIG.APPS_SCRIPT_URL + '?data=encuestas&callback=' + callbackName + '&t=' + Date.now();
+    script.onerror = function(){ /* silencioso: los gráficos simplemente no se actualizan esta vez */ };
+    document.body.appendChild(script);
+  }
+
+  function computeCounts(field, order){
+    const counts = {};
+    order.forEach(o => counts[o] = 0);
+    surveyData.forEach(r => {
+      const v = r[field];
+      if(v && counts.hasOwnProperty(v)) counts[v]++;
+    });
+    return counts;
+  }
+
+  function renderDonut(prefix, order, shortLabels, counts){
+    const total = order.reduce((s,k) => s + (counts[k] || 0), 0);
+    const donutEl = document.getElementById('donut' + prefix);
+    const totalEl = document.getElementById('donut' + prefix + 'Total');
+    const legendEl = document.getElementById('legend' + prefix);
+
+    totalEl.textContent = total;
+    legendEl.innerHTML = '';
+
+    if(total === 0){
+      donutEl.style.background = 'rgba(58,38,0,0.12)';
+      const li = document.createElement('li');
+      li.textContent = 'Aún sin respuestas';
+      li.style.opacity = '.6';
+      li.style.fontWeight = '700';
+      legendEl.appendChild(li);
+      return;
+    }
+
+    let cumulative = 0;
+    const stops = [];
+    order.forEach((key, i) => {
+      const val = counts[key] || 0;
+      const pct = (val / total) * 100;
+      const color = CHART_COLORS[i % CHART_COLORS.length];
+      const start = cumulative;
+      const end = cumulative + pct;
+      if(val > 0){
+        stops.push(color + ' ' + start.toFixed(2) + '% ' + end.toFixed(2) + '%');
+      }
+      cumulative = end;
+
+      const li = document.createElement('li');
+      const swatch = document.createElement('span');
+      swatch.className = 'swatch';
+      swatch.style.background = color;
+      const label = document.createElement('span');
+      label.textContent = shortLabels[key] || key;
+      const countSpan = document.createElement('span');
+      countSpan.className = 'legend-count';
+      countSpan.textContent = val + ' (' + Math.round(pct) + '%)';
+      li.appendChild(swatch);
+      li.appendChild(label);
+      li.appendChild(countSpan);
+      legendEl.appendChild(li);
+    });
+
+    donutEl.style.background = 'conic-gradient(' + stops.join(', ') + ')';
+  }
+
+  function renderAllDonuts(){
+    renderDonut('Q1', Q1_ORDER, Q1_SHORT, computeCounts('q1', Q1_ORDER));
+    renderDonut('Q2', Q2_ORDER, Q2_SHORT, computeCounts('q2', Q2_ORDER));
+    renderDonut('Q3', Q3_ORDER, Q3_SHORT, computeCounts('q3', Q3_ORDER));
+    renderDonut('Q4', Q4_ORDER, Q4_SHORT, computeCounts('q4', Q4_ORDER));
+    renderDonut('Q5', Q5_ORDER, Q5_SHORT, computeCounts('q5', Q5_ORDER));
+  }
+
+  loadSurveyData();
+  setInterval(loadSurveyData, CONFIG.REFRESH_MS);
 </script>
+
 </body>
 </html>
