@@ -339,7 +339,30 @@
     font-size:22px;
     text-align:center;
     color:var(--ink);
-    margin:0 0 18px;
+    margin:0 0 14px;
+  }
+  .cheaf-lock{
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    margin:0 0 26px;
+  }
+  .cheaf-letter{
+    width:44px; height:44px;
+    border:2px solid rgba(58,38,0,0.25);
+    border-radius:10px;
+    background:var(--panel);
+    color:var(--ink);
+    font-family:'Archivo Black', sans-serif;
+    font-size:18px;
+    cursor:pointer;
+    transition:background .15s ease, color .15s ease, border-color .15s ease, transform .1s ease;
+  }
+  .cheaf-letter:active{ transform:scale(0.94); }
+  .cheaf-letter.correct{
+    background:var(--gold-highlight);
+    color:var(--ink);
+    border-color:var(--gold-highlight);
   }
   .donut-card{
     background:var(--panel);
@@ -528,51 +551,60 @@
   </div>
 
   <div class="donut-section">
-    <h2 class="donut-section-title">Resultados de la encuesta</h2>
-
-    <div class="donut-card">
-      <p class="donut-title">1. ¿Conocías Cheaf?</p>
-      <div class="donut-wrap">
-        <div class="donut" id="donutQ1"></div>
-        <div class="donut-hole"><span class="donut-total" id="donutQ1Total">0</span><span class="donut-total-label">respuestas</span></div>
-      </div>
-      <ul class="donut-legend" id="legendQ1"></ul>
+    <h2 class="donut-section-title">Gráficas</h2>
+    <div class="cheaf-lock" id="cheafLock">
+      <button type="button" class="cheaf-letter" data-letter="C">C</button>
+      <button type="button" class="cheaf-letter" data-letter="H">H</button>
+      <button type="button" class="cheaf-letter" data-letter="E">E</button>
+      <button type="button" class="cheaf-letter" data-letter="A">A</button>
+      <button type="button" class="cheaf-letter" data-letter="F">F</button>
     </div>
 
-    <div class="donut-card">
-      <p class="donut-title">2. ¿Qué tan frecuente es tu uso?</p>
-      <div class="donut-wrap">
-        <div class="donut" id="donutQ2"></div>
-        <div class="donut-hole"><span class="donut-total" id="donutQ2Total">0</span><span class="donut-total-label">respuestas</span></div>
+    <div class="donut-charts" id="donutCharts" hidden>
+      <div class="donut-card">
+        <p class="donut-title">1. ¿Conocías Cheaf?</p>
+        <div class="donut-wrap">
+          <div class="donut" id="donutQ1"></div>
+          <div class="donut-hole"><span class="donut-total" id="donutQ1Total">0</span><span class="donut-total-label">respuestas</span></div>
+        </div>
+        <ul class="donut-legend" id="legendQ1"></ul>
       </div>
-      <ul class="donut-legend" id="legendQ2"></ul>
-    </div>
 
-    <div class="donut-card">
-      <p class="donut-title">3. Motivo de no uso / poco uso</p>
-      <div class="donut-wrap">
-        <div class="donut" id="donutQ3"></div>
-        <div class="donut-hole"><span class="donut-total" id="donutQ3Total">0</span><span class="donut-total-label">respuestas</span></div>
+      <div class="donut-card">
+        <p class="donut-title">2. ¿Qué tan frecuente es tu uso?</p>
+        <div class="donut-wrap">
+          <div class="donut" id="donutQ2"></div>
+          <div class="donut-hole"><span class="donut-total" id="donutQ2Total">0</span><span class="donut-total-label">respuestas</span></div>
+        </div>
+        <ul class="donut-legend" id="legendQ2"></ul>
       </div>
-      <ul class="donut-legend" id="legendQ3"></ul>
-    </div>
 
-    <div class="donut-card">
-      <p class="donut-title">4. Qué motivaría a usarla</p>
-      <div class="donut-wrap">
-        <div class="donut" id="donutQ4"></div>
-        <div class="donut-hole"><span class="donut-total" id="donutQ4Total">0</span><span class="donut-total-label">respuestas</span></div>
+      <div class="donut-card">
+        <p class="donut-title">3. Motivo de no uso / poco uso</p>
+        <div class="donut-wrap">
+          <div class="donut" id="donutQ3"></div>
+          <div class="donut-hole"><span class="donut-total" id="donutQ3Total">0</span><span class="donut-total-label">respuestas</span></div>
+        </div>
+        <ul class="donut-legend" id="legendQ3"></ul>
       </div>
-      <ul class="donut-legend" id="legendQ4"></ul>
-    </div>
 
-    <div class="donut-card">
-      <p class="donut-title">5. Probabilidad de uso el próximo mes</p>
-      <div class="donut-wrap">
-        <div class="donut" id="donutQ5"></div>
-        <div class="donut-hole"><span class="donut-total" id="donutQ5Total">0</span><span class="donut-total-label">respuestas</span></div>
+      <div class="donut-card">
+        <p class="donut-title">4. Qué motivaría a usarla</p>
+        <div class="donut-wrap">
+          <div class="donut" id="donutQ4"></div>
+          <div class="donut-hole"><span class="donut-total" id="donutQ4Total">0</span><span class="donut-total-label">respuestas</span></div>
+        </div>
+        <ul class="donut-legend" id="legendQ4"></ul>
       </div>
-      <ul class="donut-legend" id="legendQ5"></ul>
+
+      <div class="donut-card">
+        <p class="donut-title">5. Probabilidad de uso el próximo mes</p>
+        <div class="donut-wrap">
+          <div class="donut" id="donutQ5"></div>
+          <div class="donut-hole"><span class="donut-total" id="donutQ5Total">0</span><span class="donut-total-label">respuestas</span></div>
+        </div>
+        <ul class="donut-legend" id="legendQ5"></ul>
+      </div>
     </div>
   </div>
 </div>
@@ -1195,6 +1227,38 @@
 
   loadSurveyData();
   setInterval(loadSurveyData, CONFIG.REFRESH_MS);
+
+  // ================= Candado de acceso a las gráficas =================
+  // Las gráficas están ocultas hasta presionar, en orden, las letras de
+  // "CHEAF" pero al revés: F, A, E, H, C.
+  const CHEAF_UNLOCK_SEQUENCE = ['F', 'A', 'E', 'H', 'C'];
+  let cheafProgress = 0;
+  const cheafLetterButtons = document.querySelectorAll('.cheaf-letter');
+  const donutCharts = document.getElementById('donutCharts');
+  const cheafLock = document.getElementById('cheafLock');
+
+  cheafLetterButtons.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      const letter = btn.dataset.letter;
+
+      if(letter === CHEAF_UNLOCK_SEQUENCE[cheafProgress]){
+        btn.classList.add('correct');
+        cheafProgress++;
+        if(cheafProgress === CHEAF_UNLOCK_SEQUENCE.length){
+          donutCharts.hidden = false;
+          cheafLock.hidden = true;
+        }
+      } else {
+        // Secuencia incorrecta: se reinicia el intento
+        cheafLetterButtons.forEach(function(b){ b.classList.remove('correct'); });
+        cheafProgress = 0;
+        if(letter === CHEAF_UNLOCK_SEQUENCE[0]){
+          btn.classList.add('correct');
+          cheafProgress = 1;
+        }
+      }
+    });
+  });
 </script>
 
 </body>
