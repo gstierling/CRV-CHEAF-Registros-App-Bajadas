@@ -249,6 +249,88 @@
     opacity:.7;
     margin-top:22px;
   }
+
+  /* --- Formulario de encuesta --- */
+  .survey-card{
+    background:var(--panel);
+    border-radius:20px;
+    padding:24px 20px 22px;
+    margin-top:28px;
+    box-shadow:0 6px 18px rgba(58,38,0,0.12);
+  }
+  .survey-title{
+    font-family:'Archivo Black', sans-serif;
+    font-size:22px;
+    text-align:center;
+    color:var(--ink);
+    margin:0 0 20px;
+  }
+  .survey-question{ margin-bottom:22px; }
+  .survey-question:last-of-type{ margin-bottom:8px; }
+  .survey-question[hidden]{ display:none; }
+  .survey-q-text{
+    font-weight:800;
+    font-size:15px;
+    line-height:1.35;
+    color:var(--ink);
+    margin:0 0 10px;
+  }
+  .survey-options{ display:flex; flex-direction:column; gap:8px; }
+  .survey-option{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:var(--white-ish);
+    border:2px solid rgba(58,38,0,0.14);
+    border-radius:12px;
+    padding:12px 14px;
+    font-weight:700;
+    font-size:14px;
+    color:var(--ink);
+    cursor:pointer;
+    transition:background .15s ease, border-color .15s ease;
+  }
+  .survey-option input[type="radio"]{
+    width:18px; height:18px; flex-shrink:0; accent-color:var(--ink);
+  }
+  .survey-option.selected{
+    background:var(--gold-highlight);
+    border-color:var(--gold-highlight);
+  }
+  .survey-otro-input{
+    margin-top:8px;
+    width:100%;
+    padding:12px 14px;
+    border-radius:12px;
+    border:2px solid rgba(58,38,0,0.18);
+    font-family:'Manrope', sans-serif;
+    font-size:14px;
+    color:var(--ink);
+    background:var(--white-ish);
+  }
+  .survey-otro-input[hidden]{ display:none; }
+  .survey-submit{
+    width:100%;
+    border:none;
+    border-radius:14px;
+    padding:16px;
+    margin-top:6px;
+    font-family:'Archivo Black', sans-serif;
+    font-size:18px;
+    background:var(--ink);
+    color:var(--white-ish);
+    cursor:pointer;
+    box-shadow:0 6px 0 rgba(0,0,0,0.2);
+    transition:transform .1s ease, box-shadow .1s ease;
+  }
+  .survey-submit:active{ transform:translateY(4px); box-shadow:0 2px 0 rgba(0,0,0,0.2); }
+  .survey-msg{
+    text-align:center;
+    font-weight:700;
+    font-size:14px;
+    min-height:20px;
+    margin:12px 0 0;
+  }
 </style>
 </head>
 <body>
@@ -337,9 +419,69 @@
   </div>
 
   <footer id="footerNote">Actualizando datos…</footer>
+
+  <div class="survey-card" id="surveyCard">
+    <h2 class="survey-title">Cuéntanos más</h2>
+
+    <div class="survey-question">
+      <p class="survey-q-text">1. Antes de hoy, ¿conocías Cheaf?</p>
+      <div class="survey-options" data-question="q1">
+        <label class="survey-option"><input type="radio" name="q1" value="Sí">Sí</label>
+        <label class="survey-option"><input type="radio" name="q1" value="No">No</label>
+      </div>
+    </div>
+
+    <div class="survey-question">
+      <p class="survey-q-text">2. ¿Cuál de estas opciones te representa mejor?</p>
+      <div class="survey-options" data-question="q2">
+        <label class="survey-option"><input type="radio" name="q2" value="Uso Cheaf frecuentemente">Uso Cheaf frecuentemente</label>
+        <label class="survey-option"><input type="radio" name="q2" value="Tengo la app, pero la uso poco">Tengo la app, pero la uso poco</label>
+        <label class="survey-option"><input type="radio" name="q2" value="Tengo la app, pero nunca la he usado">Tengo la app, pero nunca la he usado</label>
+        <label class="survey-option"><input type="radio" name="q2" value="No tenía la app, acabo de descargarla">No tenía la app, acabo de descargarla</label>
+      </div>
+    </div>
+
+    <div class="survey-question" id="q3Wrap" hidden>
+      <p class="survey-q-text">3. ¿Cuál es el principal motivo por el que no la usas o la usas poco?</p>
+      <div class="survey-options" data-question="q3">
+        <label class="survey-option"><input type="radio" name="q3" value="No encuentro ofertas que me interesen">No encuentro ofertas que me interesen</label>
+        <label class="survey-option"><input type="radio" name="q3" value="No tengo puntos para rescatar cercanos a mí">No tengo puntos para rescatar cercanos a mí</label>
+        <label class="survey-option"><input type="radio" name="q3" value="Se me olvida que existe">Se me olvida que existe</label>
+        <label class="survey-option"><input type="radio" name="q3" value="Prefiero comprar de otra forma">Prefiero comprar de otra forma</label>
+        <label class="survey-option"><input type="radio" name="q3" value="Aún no he tenido la oportunidad">Aún no he tenido la oportunidad</label>
+        <label class="survey-option"><input type="radio" name="q3" value="No entiendo cómo usarla">No entiendo cómo usarla</label>
+      </div>
+    </div>
+
+    <div class="survey-question" id="q4Wrap" hidden>
+      <p class="survey-q-text">4. ¿Qué te motivaría a usar Cheaf a partir de hoy?</p>
+      <div class="survey-options" data-question="q4">
+        <label class="survey-option"><input type="radio" name="q4" value="Ahorrar dinero">Ahorrar dinero</label>
+        <label class="survey-option"><input type="radio" name="q4" value="Evitar el desperdicio de alimentos">Evitar el desperdicio de alimentos</label>
+        <label class="survey-option"><input type="radio" name="q4" value="Tener comercios cercanos donde ir a buscar la compra">Tener comercios cercanos donde ir a buscar la compra</label>
+        <label class="survey-option"><input type="radio" name="q4" value="Que existan promociones o descuentos">Que existan promociones o descuentos</label>
+        <label class="survey-option"><input type="radio" name="q4" value="Otro">Otro</label>
+      </div>
+      <input type="text" class="survey-otro-input" id="q4OtroText" placeholder="Cuéntanos cuál" hidden>
+    </div>
+
+    <div class="survey-question">
+      <p class="survey-q-text">5. Después de conocer (o volver a conocer) Cheaf en esta activación, ¿qué tan probable es que la uses durante el próximo mes?</p>
+      <div class="survey-options" data-question="q5">
+        <label class="survey-option"><input type="radio" name="q5" value="Muy probable">Muy probable</label>
+        <label class="survey-option"><input type="radio" name="q5" value="Probable">Probable</label>
+        <label class="survey-option"><input type="radio" name="q5" value="Poco probable">Poco probable</label>
+        <label class="survey-option"><input type="radio" name="q5" value="Nada probable">Nada probable</label>
+      </div>
+    </div>
+
+    <button type="button" class="survey-submit" id="surveySubmit">Enviar respuestas</button>
+    <p class="survey-msg" id="surveyMsg"></p>
+  </div>
 </div>
 
 <script>
+
   // ================= CONFIGURACIÓN =================
   // Reemplaza esta URL por la del Web App de Apps Script publicado
   // (ver instrucciones entregadas junto a este archivo).
@@ -689,6 +831,125 @@
   render();
   loadData();
   setInterval(loadData, CONFIG.REFRESH_MS);
+
+  // ================= Formulario de encuesta =================
+  const q3Wrap = document.getElementById('q3Wrap');
+  const q4Wrap = document.getElementById('q4Wrap');
+  const q4OtroText = document.getElementById('q4OtroText');
+  const surveyMsg = document.getElementById('surveyMsg');
+  const surveySubmit = document.getElementById('surveySubmit');
+
+  function getSelectedValue(name){
+    const checked = document.querySelector('input[name="' + name + '"]:checked');
+    return checked ? checked.value : '';
+  }
+
+  function clearGroup(name){
+    document.querySelectorAll('input[name="' + name + '"]').forEach(input => {
+      input.checked = false;
+      input.closest('.survey-option').classList.remove('selected');
+    });
+  }
+
+  // Marca visualmente la opción elegida dentro de cada grupo de preguntas
+  document.querySelectorAll('.survey-options').forEach(group => {
+    group.addEventListener('change', function(e){
+      if(e.target.tagName !== 'INPUT') return;
+      group.querySelectorAll('.survey-option').forEach(opt => opt.classList.remove('selected'));
+      e.target.closest('.survey-option').classList.add('selected');
+    });
+  });
+
+  // Pregunta 2 controla la visibilidad de las preguntas 3 y 4
+  document.querySelectorAll('input[name="q2"]').forEach(input => {
+    input.addEventListener('change', function(){
+      const v = getSelectedValue('q2');
+      const showQ3 = (v === 'Tengo la app, pero la uso poco' || v === 'Tengo la app, pero nunca la he usado');
+      const showQ4 = (v === 'No tenía la app, acabo de descargarla');
+
+      q3Wrap.hidden = !showQ3;
+      q4Wrap.hidden = !showQ4;
+
+      if(!showQ3){ clearGroup('q3'); }
+      if(!showQ4){
+        clearGroup('q4');
+        q4OtroText.hidden = true;
+        q4OtroText.value = '';
+      }
+    });
+  });
+
+  // Pregunta 4: el campo de texto "Otro" solo aparece si se elige esa opción
+  document.querySelectorAll('input[name="q4"]').forEach(input => {
+    input.addEventListener('change', function(){
+      const v = getSelectedValue('q4');
+      if(v === 'Otro'){
+        q4OtroText.hidden = false;
+      } else {
+        q4OtroText.hidden = true;
+        q4OtroText.value = '';
+      }
+    });
+  });
+
+  function setSurveyMsg(text, ok){
+    surveyMsg.textContent = text;
+    surveyMsg.style.color = ok ? '#2f7a3c' : '#b3261e';
+  }
+
+  function resetSurveyForm(){
+    ['q1','q2','q3','q4','q5'].forEach(clearGroup);
+    q3Wrap.hidden = true;
+    q4Wrap.hidden = true;
+    q4OtroText.hidden = true;
+    q4OtroText.value = '';
+  }
+
+  surveySubmit.addEventListener('click', function(){
+    const q1 = getSelectedValue('q1');
+    const q2 = getSelectedValue('q2');
+    const q3 = q3Wrap.hidden ? '' : getSelectedValue('q3');
+    const q4 = q4Wrap.hidden ? '' : getSelectedValue('q4');
+    const q4Otro = (q4 === 'Otro') ? q4OtroText.value.trim() : '';
+    const q5 = getSelectedValue('q5');
+
+    if(!q1){ setSurveyMsg('Por favor responde la pregunta 1.', false); return; }
+    if(!q2){ setSurveyMsg('Por favor responde la pregunta 2.', false); return; }
+    if(!q3Wrap.hidden && !q3){ setSurveyMsg('Por favor responde la pregunta 3.', false); return; }
+    if(!q4Wrap.hidden && !q4){ setSurveyMsg('Por favor responde la pregunta 4.', false); return; }
+    if(!q4Wrap.hidden && q4 === 'Otro' && !q4Otro){ setSurveyMsg('Cuéntanos cuál sería ese motivo.', false); return; }
+    if(!q5){ setSurveyMsg('Por favor responde la pregunta 5.', false); return; }
+
+    if(!CONFIG.APPS_SCRIPT_URL || CONFIG.APPS_SCRIPT_URL.indexOf('PEGA_AQUI') === 0){
+      setSurveyMsg('Falta configurar la URL de Apps Script', false);
+      return;
+    }
+
+    surveySubmit.disabled = true;
+    setSurveyMsg('Enviando…', true);
+
+    const regId = generateId();
+
+    fetch(CONFIG.APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ kind: 'survey', id: regId, q1: q1, q2: q2, q3: q3, q4: q4, q4Otro: q4Otro, q5: q5 })
+    })
+    .then(function(res){ return res.json(); })
+    .then(function(data){
+      if(!data || data.ok !== true){
+        throw new Error(data && data.error ? data.error : 'El servidor no confirmó el envío');
+      }
+      setSurveyMsg('¡Gracias por tus respuestas!', true);
+      resetSurveyForm();
+      surveySubmit.disabled = false;
+    })
+    .catch(function(err){
+      setSurveyMsg('No se pudo enviar' + (err && err.message ? (': ' + err.message) : '') + '. Intenta de nuevo.', false);
+      surveySubmit.disabled = false;
+    });
+  });
+
 </script>
 </body>
 </html>
